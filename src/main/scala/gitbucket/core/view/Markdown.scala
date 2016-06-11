@@ -77,12 +77,12 @@ object Markdown {
       out.append(text)
       out.append("</h" + level + ">\n")
       out.toString()
-    }
+  }
 
-    override def code(code: String, lang: String, escaped: Boolean): String = {
-      "<pre class=\"prettyprint" + (if(lang != null) s" ${options.getLangPrefix}${lang}" else "" )+ "\">" +
-        (if(escaped) code else escape(code, true)) + "</pre>"
-    }
+  override def code(code: String, lang: String, escaped: Boolean): String = {
+    "<pre class=\"prettyprint" + (if(lang != null) s" ${options.getLangPrefix}${lang}" else "" )+ "\">" +
+      (if(escaped) code else escape(code, true)) + "</pre>"
+  }
 
     override def list(body: String, ordered: Boolean): String = {
       var listType: String = null

@@ -395,7 +395,9 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           originRepositoryName = Some(originRepositoryName),
           originUserName       = Some(originUserName),
           parentRepositoryName = Some(repository.name),
-          parentUserName       = Some(repository.owner)
+          parentUserName       = Some(repository.owner),
+          enableIssues         = false,
+          enableWiki           = repository.repository.enableWiki
         )
 
         // Add collaborators for group repository

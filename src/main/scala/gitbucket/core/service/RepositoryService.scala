@@ -1,7 +1,7 @@
 package gitbucket.core.service
 
 import gitbucket.core.controller.Context
-import gitbucket.core.model.{Collaborator, Repository, Account}
+import gitbucket.core.model.{Account, Collaborator, Repository}
 import gitbucket.core.model.Profile._
 import gitbucket.core.util.JGitUtil
 import profile.simple._
@@ -18,10 +18,15 @@ trait RepositoryService { self: AccountService =>
    * @param isPrivate the repository type (private is true, otherwise false)
    * @param originRepositoryName specify for the forked repository. (default is None)
    * @param originUserName specify for the forked repository. (default is None)
+   * @param parentRepositoryName specify for the forked repository. (default is None)
+   * @param parentUserName specify for the forked repository. (default is None)
+   * @param enableWiki if false then Wiki is disabled. (default is true)
+   * @param enableIssues if false then Issues is disabled. (default is true)
    */
   def insertRepository(repositoryName: String, userName: String, description: Option[String], isPrivate: Boolean,
                        originRepositoryName: Option[String] = None, originUserName: Option[String] = None,
-                       parentRepositoryName: Option[String] = None, parentUserName: Option[String] = None)
+                       parentRepositoryName: Option[String] = None, parentUserName: Option[String] = None,
+                       enableWiki: Boolean = true, enableIssues: Boolean = true)
                       (implicit s: Session): Unit = {
     Repositories insert
       Repository(
@@ -36,7 +41,12 @@ trait RepositoryService { self: AccountService =>
         originUserName       = originUserName,
         originRepositoryName = originRepositoryName,
         parentUserName       = parentUserName,
-        parentRepositoryName = parentRepositoryName)
+        parentRepositoryName = parentRepositoryName,
+        enableIssues         = true,
+        enableWiki           = true,
+        externalIssuesUrl    = None,
+        externalWikiUrl      = None
+      )
 
     IssueId insert (userName, repositoryName, 0)
   }
@@ -222,7 +232,7 @@ trait RepositoryService { self: AccountService =>
    * Include public repository, private own repository and private but collaborator repository.
    *
    * @param userName the user name of collaborator
-   * @return the repository infomation list
+   * @return the repository information list
    */
   def getAllRepositories(userName: String)(implicit s: Session): List[(String, String)] = {
     Repositories.filter { t1 =>
@@ -313,10 +323,11 @@ trait RepositoryService { self: AccountService =>
    * Save repository options.
    */
   def saveRepositoryOptions(userName: String, repositoryName: String,
-      description: Option[String], isPrivate: Boolean)(implicit s: Session): Unit =
+      description: Option[String], isPrivate: Boolean,
+      enableIssues: Boolean, enableWiki: Boolean, externalIssuesUrl: Option[String], externalWikiUrl: Option[String])(implicit s: Session): Unit =
     Repositories.filter(_.byRepository(userName, repositoryName))
-      .map { r => (r.description.?, r.isPrivate, r.updatedDate) }
-      .update (description, isPrivate, currentDate)
+      .map { r => (r.description.?, r.isPrivate, r.enableIssues, r.enableWiki, r.externalIssuesUrl.?, r.externalWikiUrl.?, r.updatedDate) }
+      .update (description, isPrivate, enableIssues, enableWiki, externalIssuesUrl, externalWikiUrl, currentDate)
 
   def saveRepositoryDefaultBranch(userName: String, repositoryName: String,
       defaultBranch: String)(implicit s: Session): Unit =
